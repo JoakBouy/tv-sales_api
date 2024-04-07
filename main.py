@@ -71,9 +71,14 @@ def get_documentation():
 
 if __name__ == "__main__":
     import uvicorn
-    import webbrowser
 
-    uvicorn.run(app, host="127.0.0.1", port=8000)
-
-    # Open the documentation in a web browser
-    webbrowser.open("http://127.0.0.1:8000/docs")
+    uvicorn.run(
+        app,
+        host="127.0.0.1",
+        port=8000,
+        log_level="info",
+        reload=True,
+        factory=True,
+        lifespan="on",
+        health_check_url=None,
+    )
