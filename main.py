@@ -72,14 +72,4 @@ def get_documentation():
 if __name__ == "__main__":
     import uvicorn
 
-    config = uvicorn.Config(
-        app=app,
-        host="127.0.0.1",
-        port=8000,
-        log_level="info",
-        reload=True,
-        factory=True,
-        lifespan="on",
-    )
-    server = uvicorn.Server(config)
-    server.run()
+    uvicorn.run(app, host="127.0.0.1", port=8000)
