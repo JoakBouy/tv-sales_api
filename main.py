@@ -3,6 +3,7 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+from fastapi.responses import HTMLResponse
 
 # Load the saved model
 with open('model.pkl', 'rb') as file:
@@ -14,7 +15,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Configure CORS to allow all origins for now 
+# Configure CORS to allow all origins for now
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -40,6 +41,39 @@ def predict(tv_input: TVMarketingInput):
 def get_open_api_endpoint():
     return app.openapi()
 
+@app.get("/docs", include_in_schema=False)
+def get_documentation():
+    return HTMLResponse("""
+        <!DOCTYPE html>
+        <html>
+            <head>
+                <title>API Documentation</title>
+                <meta charset="UTF-8">
+                <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@latest/swagger-ui.css">
+            </head>
+            <body>
+                <div id="swagger-ui"></div>
+                <script src="https://unpkg.com/swagger-ui-dist@latest/swagger-ui-bundle.js"></script>
+                <script>
+                    const ui = SwaggerUIBundle({
+                        url: '/openapi.json',
+                        dom_id: '#swagger-ui',
+                        layout: 'BaseLayout',
+                        presets: [
+                            SwaggerUIBundle.presets.apis,
+                            SwaggerUIBundle.SwaggerUIStandalonePreset
+                        ]
+                    })
+                </script>
+            </body>
+        </html>
+    """)
+
 if __name__ == "__main__":
     import uvicorn
+    import webbrowser
+
     uvicorn.run(app, host="127.0.0.1", port=8000)
+
+    # Open the documentation in a web browser
+    webbrowser.open("http://127.0.0.1:8000/docs")
