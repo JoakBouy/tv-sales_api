@@ -4,6 +4,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from fastapi.responses import HTMLResponse
+import uvicorn
+
 
 # Load the saved model
 with open('model.pkl', 'rb') as file:
@@ -18,9 +20,9 @@ app = FastAPI(
 # Configure CORS to allow all origins for now
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["\*"],
+    allow_methods=["\*"],
+    allow_headers=["\*"],
     allow_credentials=True,
 )
 
@@ -46,30 +48,37 @@ def get_documentation():
     return HTMLResponse("""
         <!DOCTYPE html>
         <html>
-            <head>
-                <title>API Documentation</title>
-                <meta charset="UTF-8">
-                <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@latest/swagger-ui.css">
-            </head>
-            <body>
-                <div id="swagger-ui"></div>
-                <script src="https://unpkg.com/swagger-ui-dist@latest/swagger-ui-bundle.js"></script>
-                <script>
-                    const ui = SwaggerUIBundle({
-                        url: '/openapi.json',
-                        dom_id: '#swagger-ui',
-                        layout: 'BaseLayout',
-                        presets: [
-                            SwaggerUIBundle.presets.apis,
-                            SwaggerUIBundle.SwaggerUIStandalonePreset
-                        ]
-                    })
-                </script>
-            </body>
+        <head>
+        <title>API Documentation</title>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@latest/swagger-ui.css">
+        </head>
+        <body>
+        <div id="swagger-ui"></div>
+        <script src="https://unpkg.com/swagger-ui-dist@latest/swagger-ui-bundle.js"></script>
+        <script>
+        const ui = SwaggerUIBundle({
+            url: '/openapi.json',
+            dom_id: '#swagger-ui',
+            layout: 'BaseLayout',
+            presets: [
+            SwaggerUIBundle.presets.apis,
+            SwaggerUIBundle.SwaggerUIStandalonePreset
+            ]
+        })
+        </script>
+        </body>
         </html>
     """)
-
+from pyngrok import ngrok
 if __name__ == "__main__":
-    import uvicorn
 
-    uvicorn.run(app, host="127.0.0.1", port=8080)
+
+    # Create an ngrok tunnel for port 8000
+    ngrok_tunnel = ngrok.connect(8000)
+    public_url = ngrok_tunnel.public_url
+    print(f"Public URL: {public_url}")
+
+    config = uvicorn.Config(app, host="0.0.0.0", port=8000)
+    server = uvicorn.Server(config)
+    server.run()
