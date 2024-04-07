@@ -2,9 +2,9 @@ import nest_asyncio
 nest_asyncio.apply()
 import pickle
 import numpy as np
-from fastapi import FastAPI
-from pydantic import BaseModel
-from fastapi.openapi.utils import get_openapi
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 # Load the saved model
 with open('model.pkl', 'rb') as file:
@@ -16,16 +16,27 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Configure CORS to allow all origins for now 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=True,
+)
+
 class TVMarketingInput(BaseModel):
-    tv: float
+    tv: float = Field(gt=0, description="TV marketing expenses")
 
 @app.post("/predict", summary="Predict sales based on TV marketing expenses")
 def predict(tv_input: TVMarketingInput):
-    tv = tv_input.tv
-    sales_pred = model.predict([[tv]])
-    predicted_sales = sales_pred.item()  # Extract the scalar value using item()
-    return {"predicted_sales": predicted_sales}
-
+    try:
+        tv = tv_input.tv
+        sales_pred = model.predict([[tv]])
+        predicted_sales = sales_pred.item()
+        return {"predicted_sales": predicted_sales}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/openapi.json", include_in_schema=False)
 def get_open_api_endpoint():
