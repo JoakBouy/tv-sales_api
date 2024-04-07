@@ -1,5 +1,3 @@
-import nest_asyncio
-nest_asyncio.apply()
 import pickle
 import numpy as np
 from fastapi import FastAPI, HTTPException
